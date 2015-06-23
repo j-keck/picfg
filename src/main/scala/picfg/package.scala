@@ -2,7 +2,7 @@ import java.util
 import java.util.concurrent.TimeoutException
 import javax.swing.SwingUtilities
 
-import sodium.StreamSink
+import sodium.{Lambda1, Handler, StreamSink}
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future, Promise}
@@ -21,6 +21,17 @@ package object picfg {
         f
       }
     })
+  }
+
+  implicit def function2Handler[A, B](f: Function1[A, B]): Handler[A] = new Handler[A] {
+    override def run(a: A): Unit = {
+      f(a)
+      ()
+    }
+  }
+
+  implicit def function2Lambda[A, B](f: Function[A, B]): Lambda1[A, B] = new Lambda1[A, B] {
+    override def apply(a: A): B = f(a)
   }
 
   sealed trait Log

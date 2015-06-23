@@ -72,7 +72,7 @@ class Remote(pi: Pi) extends LogSupport {
 
     def read(path: String): Either[Exception, String] =
       withSftpChannel { channel =>
-        logInfo(s"read ${path} from ${pi}")
+        //logInfo(s"read ${path} from ${pi}")
         Source.fromInputStream(channel.get(path)).getLines().mkString("\n")
       }.left.flatMap(_ match {
         // if the file doesn't exists, start with a empty configuration

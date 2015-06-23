@@ -61,7 +61,7 @@ object elements {
     })
 
     def onClick(f: Btn => Unit): Btn = {
-      clicked.listen { _ =>
+      clicked.listen { _: Any =>
         val btn = this
         swingUtilsInvokeLater(f(btn))
       }
@@ -89,10 +89,10 @@ object elements {
       def idx = indexOfComponent(tab)
 
       // handle close
-      tab.close.listen(_ => swingUtilsInvokeLater(removeTabAt(idx)))
+      tab.close.listen{_: Any => removeTabAt(idx)}
 
       // handle isDirty
-      tab.isDirty.value.listen { isDirty =>
+      tab.isDirty.value.listen { isDirty: Boolean =>
         swingUtilsInvokeLater {
           if (isDirty) setIconAt(idx, Icon("tab-dirty.png"))
           else setIconAt(idx, null) // java api!!!
@@ -119,7 +119,7 @@ object elements {
       val model = new TableModel(Vector.empty[A], colNames)
 
       // react on new rows
-      stream.listen { row =>
+      stream.listen { row: A =>
         swingUtilsInvokeLater(model.addRow(row))
       }
 
@@ -283,7 +283,7 @@ object elements {
     dialog.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE)
     dialog.setLocationRelativeTo(null)
 
-    show.listen { setVisible =>
+    show.listen { setVisible: Boolean =>
       swingUtilsInvokeLater {
         if (setVisible) {
           val optionPane = new JOptionPane(title, JOptionPane.WARNING_MESSAGE, JOptionPane.YES_NO_OPTION)
