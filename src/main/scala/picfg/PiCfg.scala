@@ -45,7 +45,7 @@ object PiCfg extends App with LogSupport {
         logError("unable to fetch remote config", e)
         e.printStackTrace()
       }.right.map { configs =>
-        tabs.addTab(new ConfigTab(pi, remote, configs))
+        tabs.addTab(new ConfigTab(pi, remote, configs), setActive = true)
       }
     }
 

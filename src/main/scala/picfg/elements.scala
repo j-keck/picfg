@@ -78,15 +78,18 @@ object elements {
 
   case class TabsPanel(private val initialTabs: Tab*) extends JTabbedPane with Element {
     // add initial tabs
-    initialTabs.foreach(addTab)
+    initialTabs.foreach(tab => addTab(tab))
 
-    def addTab[A <: Tab](tab: A): A = {
+    def addTab[A <: Tab](tab: A, setActive: Boolean = false): A = {
       addTab(tab.title, tab)
 
       // keep it as 'def', to fetch the actual index at runtime
       // if we have: <TAB1 (idx: 0)>, <TAB2 (idx: 1)> and we delete TAB1, then
       // TAB2 become index: 0
       def idx = indexOfComponent(tab)
+      if(setActive){
+        setSelectedIndex(idx)
+      }
 
       // handle close
       tab.close.map(_ => removeTabAt(idx))
