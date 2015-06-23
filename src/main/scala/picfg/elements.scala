@@ -3,7 +3,9 @@ package picfg
 import java.awt.event._
 import java.awt.{BorderLayout, Font, Color, Component}
 import java.beans.{PropertyChangeEvent, PropertyChangeListener}
+import java.io.File
 import java.lang.Integer
+import java.net.URL
 import java.text.SimpleDateFormat
 import java.util
 import java.util.Date
@@ -14,6 +16,7 @@ import javax.swing.table.{DefaultTableCellRenderer, DefaultTableModel}
 import picfg.config.{Prop, Config}
 import sodium.{Cell, CellSink, Stream, StreamSink}
 
+import scala.io.Source
 import scala.reflect.runtime.universe._
 import scala.reflect.runtime.currentMirror
 
@@ -21,7 +24,13 @@ import scala.reflect.runtime.currentMirror
 object elements {
 
   object Icon {
-    def apply(name: String) = new ImageIcon(ClassLoader.getSystemResource(name))
+    def apply(name: String) = {
+      val url = Option(ClassLoader.getSystemResource(name)).getOrElse{
+        val pwd = System.getProperty("user.dir")
+        new URL(s"file://${pwd}/src/main/resources/${name}")
+      }
+      new ImageIcon(url)
+    }
   }
 
   trait Element extends JComponent {
