@@ -25,8 +25,8 @@ object Scanner extends Scanner {
 
     // send
     val msg = "picfg-ping".getBytes
-    //FIXME: broadcast address: 0.0.0.0 or 255.255.255.255 doesn't work - why?
-    val packet = new DatagramPacket(msg, msg.length, new InetSocketAddress("192.168.1.255", port))
+    //FIXME: broadcast address: 255.255.255.255 doesn't work under FreeBSD - why?
+    val packet = new DatagramPacket(msg, msg.length, new InetSocketAddress("255.255.255.255", port))
     socket.send(packet)
 
     // receive
