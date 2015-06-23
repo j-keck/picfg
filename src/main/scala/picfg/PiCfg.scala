@@ -13,11 +13,9 @@ import scala.concurrent.duration._
 object PiCfg extends App with LogSupport {
 
 
-  swingUtilsInvokeLater {
-    val view = new MainView()
-    view.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
-    view.setVisible(true)
-  }
+  val view = new MainView()
+  view.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
+  view.setVisible(true)
 
 
   class MainView extends JFrame {
@@ -32,51 +30,45 @@ object PiCfg extends App with LogSupport {
     // logs
     val logList = new LogList
     add(logList, BorderLayout.SOUTH)
-
-    log.listen { msg => swingUtilsInvokeLater(logList.append(msg)) }
+    onLogMsg(msg => logList.append(msg))
 
     pack()
   }
 
 
   class ScanTab(tabs: TabsPanel) extends Tab("Scan Network") {
-
-    Transaction.run { _ =>
-      // scan result
-      val table = new ScanResultTable()
-      table.rowSelected.listen { pi =>
-        SwingUtilities.invokeLater(new Runnable() {
-          override def run(): Unit = {
-            val remote = new Remote(pi)
-            remote.fetch(Configurations).left.map { e =>
-              log.send(Error("unable to fetch remote config", e))
-              e.printStackTrace()
-            }.right.map { configs =>
-              tabs.addTab(new ConfigTab(pi, remote, configs))
-            }
-          }
-        })
+    // scan result
+    val table = new ScanResultTable()
+    table.rowSelected.map { pi =>
+      val remote = new Remote(pi)
+      remote.fetch(Configurations).left.map { e =>
+        logError("unable to fetch remote config", e)
+        e.printStackTrace()
+      }.right.map { configs =>
+        tabs.addTab(new ConfigTab(pi, remote, configs))
       }
-
-      add(new JScrollPane(table), BorderLayout.CENTER)
-
-      // scan button
-      add(new Btn("Scan", "network.png").onClick { btn =>
-        log.send(Info("Start scan"))
-        btn.setEnabled(false)
-        import scala.concurrent.ExecutionContext.Implicits.global
-        table.clearRows()
-        Scanner.scanNetwork(33333, 5.seconds).onComplete { _ =>
-          log.send(Info("Scan done"))
-          btn.setEnabled(true)
-        }
-      }, BorderLayout.NORTH)
-
     }
+
+
+    add(new JScrollPane(table), BorderLayout.CENTER)
+
+    // scan button
+    add(new Btn("Scan", "network.png").onClick { btn =>
+      logInfo("Start scan")
+      btn.setEnabled(false)
+      import scala.concurrent.ExecutionContext.Implicits.global
+      table.clearRows()
+      Scanner.scanNetwork(33333, 5.seconds).onComplete { _ =>
+        logInfo("Scan done")
+        btn.setEnabled(true)
+      }
+    }, BorderLayout.NORTH)
+
 
     class ScanResultTable extends Table(TableModel.fromStream(Scanner.findings, "Name", "Ip")) {
       override def isCellEditable(row: Int, column: Int): Boolean = false
     }
+
   }
 
 
@@ -102,7 +94,7 @@ object PiCfg extends App with LogSupport {
     toolBar.add(new Btn("Push", "push.png")).onClick { _ =>
       val dirtyTablesAndThierIsDirty = tablesAndTheirIsDirty.filter(_._2.sample)
       remote.push(dirtyTablesAndThierIsDirty.map(_._1.config)).left.map { e =>
-        log.send(Error("unable to send config", e))
+        logError("unable to send config", e)
         e.printStackTrace()
       }.right.map { _ =>
         dirtyTablesAndThierIsDirty.map(_._2.send(false))

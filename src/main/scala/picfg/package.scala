@@ -1,6 +1,5 @@
 import java.util
 import java.util.concurrent.TimeoutException
-import javax.swing.SwingUtilities
 
 import sodium.StreamSink
 
@@ -12,15 +11,6 @@ package object picfg {
 
   case class Pi(name: String, ip: String) {
     override def toString() = s"$name ($ip)"
-  }
-
-
-  def swingUtilsInvokeLater(f: => Unit): Unit = {
-    SwingUtilities.invokeLater(new Runnable {
-      override def run(): Unit = {
-        f
-      }
-    })
   }
 
   sealed trait Log
@@ -36,11 +26,13 @@ package object picfg {
   }
 
   trait LogSupport {
-    val log = LogSupport.log
+    def onLogMsg(f: Log => Unit): Unit = {
+      LogSupport.log.map(f)
+    }
 
-    def logInfo(msg: String) = log.send(Info(msg))
+    def logInfo(msg: String) = LogSupport.log.send(Info(msg))
 
-    def logError(msg: String, e: Exception) = log.send(Error(msg, e))
+    def logError(msg: String, e: Exception) = LogSupport.log.send(Error(msg, e))
   }
 
   implicit class FutureOps[T](f: Future[T]) {

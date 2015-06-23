@@ -25,7 +25,7 @@ object elements {
 
   object Icon {
     def apply(name: String) = {
-      val url = Option(ClassLoader.getSystemResource(name)).getOrElse{
+      val url = Option(ClassLoader.getSystemResource(name)).getOrElse {
         val pwd = System.getProperty("user.dir")
         new URL(s"file://${pwd}/src/main/resources/${name}")
       }
@@ -61,12 +61,12 @@ object elements {
     })
 
     def onClick(f: Btn => Unit): Btn = {
-      clicked.listen { _ =>
-        val btn = this
-        swingUtilsInvokeLater(f(btn))
+      clicked.map { _ =>
+        f(this)
       }
       this
     }
+
   }
 
 
@@ -89,14 +89,12 @@ object elements {
       def idx = indexOfComponent(tab)
 
       // handle close
-      tab.close.listen(_ => swingUtilsInvokeLater(removeTabAt(idx)))
+      tab.close.map(_ => removeTabAt(idx))
 
       // handle isDirty
-      tab.isDirty.value.listen { isDirty =>
-        swingUtilsInvokeLater {
-          if (isDirty) setIconAt(idx, Icon("tab-dirty.png"))
-          else setIconAt(idx, null) // java api!!!
-        }
+      tab.isDirty.value.map { isDirty =>
+        if (isDirty) setIconAt(idx, Icon("tab-dirty.png"))
+        else setIconAt(idx, null) // java api!!!
       }
 
       tab
@@ -119,8 +117,8 @@ object elements {
       val model = new TableModel(Vector.empty[A], colNames)
 
       // react on new rows
-      stream.listen { row =>
-        swingUtilsInvokeLater(model.addRow(row))
+      stream.map { row =>
+        model.addRow(row)
       }
 
       model
@@ -283,27 +281,26 @@ object elements {
     dialog.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE)
     dialog.setLocationRelativeTo(null)
 
-    show.listen { setVisible =>
-      swingUtilsInvokeLater {
-        if (setVisible) {
-          val optionPane = new JOptionPane(title, JOptionPane.WARNING_MESSAGE, JOptionPane.YES_NO_OPTION)
-          optionPane.addPropertyChangeListener("value", new PropertyChangeListener {
-            override def propertyChange(evt: PropertyChangeEvent): Unit = evt.getNewValue.asInstanceOf[Integer].intValue match {
-              case JOptionPane.YES_OPTION =>
-                yesClicked_.send(())
-                fYes(dialog)
-                dialog.setVisible(false)
-              case JOptionPane.NO_OPTION =>
-                noClicked_.send(())
-                fNo(dialog)
-                dialog.setVisible(false)
-            }
-          })
-          dialog.setContentPane(optionPane)
-          dialog.pack()
-        }
-        dialog.setVisible(setVisible)
+    show.map { setVisible =>
+
+      if (setVisible) {
+        val optionPane = new JOptionPane(title, JOptionPane.WARNING_MESSAGE, JOptionPane.YES_NO_OPTION)
+        optionPane.addPropertyChangeListener("value", new PropertyChangeListener {
+          override def propertyChange(evt: PropertyChangeEvent): Unit = evt.getNewValue.asInstanceOf[Integer].intValue match {
+            case JOptionPane.YES_OPTION =>
+              yesClicked_.send(())
+              fYes(dialog)
+              dialog.setVisible(false)
+            case JOptionPane.NO_OPTION =>
+              noClicked_.send(())
+              fNo(dialog)
+              dialog.setVisible(false)
+          }
+        })
+        dialog.setContentPane(optionPane)
+        dialog.pack()
       }
+      dialog.setVisible(setVisible)
     }
 
     val yesClicked: Stream[Unit] = yesClicked_
