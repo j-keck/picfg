@@ -101,12 +101,12 @@ object PiCfg extends App with LogSupport {
 
 
     toolBar.add(new Btn("Push", "push.png")).onClick { _ =>
-      val dirtyTablesAndThierIsDirty = tablesAndTheirIsDirty.filter(_._2.sample)
-      remote.push(dirtyTablesAndThierIsDirty.map(_._1.config)).left.map { e =>
+      val dirtyTablesAndTheirIsDirty = tablesAndTheirIsDirty.filter(_._2.sample)
+      remote.push(dirtyTablesAndTheirIsDirty.map(_._1.config)).left.map { e =>
         logError("unable to send config", e)
         e.printStackTrace()
       }.right.map { _ =>
-        dirtyTablesAndThierIsDirty.map(_._2.send(false))
+        dirtyTablesAndTheirIsDirty.map(_._2.send(false))
       }
     }
 
