@@ -1,10 +1,8 @@
 package picfg
 
 import java.awt.event._
-import java.awt.{BorderLayout, Font, Color, Component}
+import java.awt.{BorderLayout, Color, Component}
 import java.beans.{PropertyChangeEvent, PropertyChangeListener}
-import java.io.File
-import java.lang.Integer
 import java.net.URL
 import java.text.SimpleDateFormat
 import java.util
@@ -13,13 +11,12 @@ import javax.swing._
 import javax.swing.event.{TableModelEvent, TableModelListener}
 import javax.swing.table.{DefaultTableCellRenderer, DefaultTableModel}
 
-import picfg.config.{Prop, Config}
 import sodium.{Cell, CellSink, Stream, StreamSink}
 
-import scala.io.Source
-import scala.reflect.runtime.universe._
 import scala.reflect.runtime.currentMirror
+import scala.reflect.runtime.universe._
 
+import log._
 
 object elements {
 
@@ -87,7 +84,7 @@ object elements {
       // if we have: <TAB1 (idx: 0)>, <TAB2 (idx: 1)> and we delete TAB1, then
       // TAB2 become index: 0
       def idx = indexOfComponent(tab)
-      if(setActive){
+      if (setActive) {
         setSelectedIndex(idx)
       }
 
@@ -242,24 +239,19 @@ object elements {
   class LogList extends JScrollPane with Element {
     private val model = new DefaultListModel[Log]
     private val jList = new JList(model)
+
+    // TODO: new DefaultListCellRenderer{ ... } triggers compile-time error - why?:
+    // [error] /usr/home/j/prj/priv/picfg/src/main/scala/picfg/elements.scala:259: object creation impossible, since method
+    // getListCellRendererComponent in trait ListCellRenderer of type (x$1: javax.swing.JList[_ <: Object], x$2: Object, x$3: Int,
+    // x$4: Boolean, x$5: Boolean)java.awt.Component is not defined
+    // [error]       jList.setCellRenderer(new DefaultListCellRenderer {
+    // [error]                                 ^
+    // [error] one error found
+    // [error] (compile:compileIncremental) Compilation failed
+    jList.setCellRenderer(new LogListCellRenderer())
     setViewportView(jList)
 
-    def append(l: Log): Unit = {
-      val (msg, color) = l match {
-        case Info(msg) => (msg, Color.BLACK)
-        case Error(msg, e) => (msg, Color.RED)
-      }
-
-      def prefixWithTS(s: String): String = {
-        val sdf = new SimpleDateFormat("HH:mm:ss")
-        s"${sdf.format(new Date())} | ${s}"
-      }
-
-      val label = new JLabel(prefixWithTS(msg))
-      label.setForeground(color)
-      model.addElement(l)
-    }
-
+    def addLog(l: Log): Unit = model.addElement(l)
 
     //FIXME: scrolling per mouse not possible!
     getVerticalScrollBar.addAdjustmentListener(new AdjustmentListener {
