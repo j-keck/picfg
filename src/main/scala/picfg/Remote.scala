@@ -9,9 +9,9 @@ import scala.io.Source
 import scala.reflect.runtime.universe.{Try => _, _}
 import scala.util.Try
 
-class Remote(pi: Pi) extends LogSupport {
+class Remote(pi: Pi, user: String, pwd: String) extends LogSupport {
 
-  private val scp = new SCP(pi.ip, "j", "ginger")
+  private val scp = new SCP(pi.ip, user, pwd)
 
   def fetch[A: TypeTag](configs: Seq[Config]): Either[Exception, Seq[Config]] = {
     def flatten[L, R](seq: Seq[Either[L, R]]): Either[L, Seq[R]] = {

@@ -6,13 +6,22 @@ import javax.swing.table.TableCellEditor
 
 import picfg.config._
 import picfg.elements._
-import sodium.{Transaction, CellSink}
+import sodium.CellSink
 
 import scala.concurrent.duration._
 
 object PiCfg extends App with LogSupport {
 
+  // FIXME: app configuration
+  val piUser = "pi"
+  val piPwd = "pi"
 
+  val broadcastPort = 33333
+  val scanNetworkDur = 5.seconds
+  //
+
+
+  // build the view and startup
   val view = new MainView()
   view.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
   view.setVisible(true)
@@ -40,7 +49,7 @@ object PiCfg extends App with LogSupport {
     // scan result
     val table = new ScanResultTable()
     table.rowSelected.map { pi =>
-      val remote = new Remote(pi)
+      val remote = new Remote(pi, piUser, piPwd)
       remote.fetch(Configurations).left.map { e =>
         logError("unable to fetch remote config", e)
         e.printStackTrace()
@@ -58,7 +67,7 @@ object PiCfg extends App with LogSupport {
       btn.setEnabled(false)
       import scala.concurrent.ExecutionContext.Implicits.global
       table.clearRows()
-      Scanner.scanNetwork(33333, 5.seconds).onComplete { _ =>
+      Scanner.scanNetwork(broadcastPort, scanNetworkDur).onComplete { _ =>
         logInfo("Scan done")
         btn.setEnabled(true)
       }
