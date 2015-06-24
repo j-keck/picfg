@@ -6,6 +6,7 @@ import javax.swing.table.TableCellEditor
 
 import picfg.config._
 import picfg.elements._
+import picfg.log._
 import sodium.CellSink
 
 import scala.concurrent.duration._
@@ -39,7 +40,7 @@ object PiCfg extends App with LogSupport {
     // logs
     val logList = new LogList
     add(logList, BorderLayout.SOUTH)
-    onLogMsg(msg => logList.append(msg))
+    onLogMsg(msg => logList.addLog(msg))
 
     pack()
   }

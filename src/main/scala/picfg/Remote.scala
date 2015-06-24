@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream
 
 import com.jcraft.jsch.{ChannelSftp, JSch, Session}
 import picfg.config.Config
+import picfg.log._
 
 import scala.io.Source
 import scala.reflect.runtime.universe.{Try => _, _}
